@@ -7,6 +7,8 @@ import type {
   Overview,
   PlanType,
   LicenseStatus,
+  FamilySubscription,
+  FamilyPriceTier,
 } from './types';
 
 // ── Input payloads (mirror the FastAPI request schemas) ──────
@@ -36,6 +38,12 @@ export interface UserInput {
   role: 'manager' | 'coach';
 }
 
+export interface FamilySubscriptionInput {
+  parent_email: string;
+  price_tier?: FamilyPriceTier;
+  expires_at?: string | null;
+}
+
 // ── Endpoints (platform admin only) ──────────────────────────
 
 export const api = {
@@ -59,5 +67,15 @@ export const api = {
       apiFetch<SchoolUser>(`/platform/schools/${schoolId}/users`, { method: 'POST', body }),
     remove: (schoolId: string, userId: string) =>
       apiFetch<void>(`/platform/schools/${schoolId}/users/${userId}`, { method: 'DELETE' }),
+  },
+  familySubscriptions: {
+    list: (schoolId: string) =>
+      apiFetch<FamilySubscription[]>(`/platform/schools/${schoolId}/family-subscriptions`),
+    create: (schoolId: string, body: FamilySubscriptionInput) =>
+      apiFetch<FamilySubscription>(`/platform/schools/${schoolId}/family-subscriptions`,
+        { method: 'POST', body }),
+    cancel: (subscriptionId: string) =>
+      apiFetch<FamilySubscription>(`/platform/family-subscriptions/${subscriptionId}`,
+        { method: 'DELETE' }),
   },
 };

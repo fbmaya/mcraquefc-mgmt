@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/endpoints';
-import type { SchoolInput, LicenseInput, UserInput } from '../api/endpoints';
+import type { SchoolInput, LicenseInput, UserInput, FamilySubscriptionInput } from '../api/endpoints';
 
 // ── Queries ──────────────────────────────────────────────────
 
@@ -24,6 +24,14 @@ export function useSchoolUsers(id: string | undefined) {
   return useQuery({
     queryKey: ['school-users', id],
     queryFn: () => api.users.list(id as string),
+    enabled: Boolean(id),
+  });
+}
+
+export function useFamilySubscriptions(id: string | undefined) {
+  return useQuery({
+    queryKey: ['family-subs', id],
+    queryFn: () => api.familySubscriptions.list(id as string),
     enabled: Boolean(id),
   });
 }
@@ -76,6 +84,24 @@ export function useDeleteUser() {
   return useMutation({
     mutationFn: (vars: { schoolId: string; userId: string }) =>
       api.users.remove(vars.schoolId, vars.userId),
+    onSuccess: invalidate,
+  });
+}
+
+export function useCreateSubscription() {
+  const invalidate = useInvalidateAll();
+  return useMutation({
+    mutationFn: (vars: { schoolId: string; body: FamilySubscriptionInput }) =>
+      api.familySubscriptions.create(vars.schoolId, vars.body),
+    onSuccess: invalidate,
+  });
+}
+
+export function useCancelSubscription() {
+  const invalidate = useInvalidateAll();
+  return useMutation({
+    mutationFn: (vars: { subscriptionId: string }) =>
+      api.familySubscriptions.cancel(vars.subscriptionId),
     onSuccess: invalidate,
   });
 }

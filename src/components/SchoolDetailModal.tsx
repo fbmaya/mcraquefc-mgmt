@@ -3,14 +3,25 @@ import { Modal } from './Modal';
 import { useToast } from './Toast';
 import { LicenseModal } from './LicenseModal';
 import { AddUserModal } from './AddUserModal';
-import { useSchoolDetail, useSchoolUsers, useDeleteUser } from '../hooks/queries';
-import type { UserRole } from '../api/types';
+import { FamilySubscriptionModal } from './FamilySubscriptionModal';
+import {
+  useSchoolDetail, useSchoolUsers, useDeleteUser,
+  useFamilySubscriptions, useCancelSubscription,
+} from '../hooks/queries';
+import type { UserRole, FamilySubStatus } from '../api/types';
 
 const ROLE_BADGE: Record<string, string> = {
   manager: 'badge-blue',
   coach: 'badge-green',
   parent: 'badge-gray',
   platform_admin: 'badge-yellow',
+};
+
+const SUB_BADGE: Record<FamilySubStatus, string> = {
+  active: 'badge-green',
+  overdue: 'badge-yellow',
+  pending: 'badge-gray',
+  cancelled: 'badge-red',
 };
 
 function roleBadge(role: UserRole) {
@@ -20,10 +31,13 @@ function roleBadge(role: UserRole) {
 export function SchoolDetailModal({ schoolId, onClose }: { schoolId: string; onClose: () => void }) {
   const { data, isLoading, error } = useSchoolDetail(schoolId);
   const { data: users } = useSchoolUsers(schoolId);
+  const { data: subs } = useFamilySubscriptions(schoolId);
   const deleteUser = useDeleteUser();
+  const cancelSub = useCancelSubscription();
   const toast = useToast();
   const [showLicense, setShowLicense] = useState(false);
   const [showAddUser, setShowAddUser] = useState(false);
+  const [showAddSub, setShowAddSub] = useState(false);
 
   async function onDeleteUser(userId: string, name: string) {
     if (!confirm(`Remover "${name}"?`)) return;
@@ -32,6 +46,16 @@ export function SchoolDetailModal({ schoolId, onClose }: { schoolId: string; onC
       toast('Usuário removido');
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Falha ao remover', 'err');
+    }
+  }
+
+  async function onCancelSub(subscriptionId: string) {
+    if (!confirm('Cancelar esta assinatura Family?')) return;
+    try {
+      await cancelSub.mutateAsync({ subscriptionId });
+      toast('Assinatura cancelada');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Falha ao cancelar', 'err');
     }
   }
 
@@ -114,6 +138,43 @@ export function SchoolDetailModal({ schoolId, onClose }: { schoolId: string; onC
                 </tbody>
               </table>
             </div>
+
+            <div className="section-head">
+              <p className="subhead">Assinaturas Family (individuais)</p>
+              <button className="sm" onClick={() => setShowAddSub(true)}>+ Nova assinatura</button>
+            </div>
+            {lic?.family_included && (
+              <p className="alert alert-warning">
+                Esta escola tem Family incluso no plano — os responsáveis já têm acesso automático.
+                Assinaturas individuais só são necessárias quando o plano NÃO inclui Family.
+              </p>
+            )}
+            <div className="table-wrap">
+              <table>
+                <thead><tr><th>Responsável</th><th>Status</th><th>Faixa</th><th>Vence</th><th></th></tr></thead>
+                <tbody>
+                  {subs && subs.length ? (
+                    subs.map((s) => (
+                      <tr key={s.id}>
+                        <td>{s.parent_name ?? s.parent_email ?? s.parent_id}</td>
+                        <td><span className={`badge ${SUB_BADGE[s.status]}`}>{s.status}</span></td>
+                        <td>{s.price_tier}</td>
+                        <td>{s.expires_at ?? '—'}</td>
+                        <td>
+                          {s.status !== 'cancelled' && (
+                            <button className="ghost danger sm" onClick={() => onCancelSub(s.id)}>
+                              Cancelar
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr><td colSpan={5} className="empty">Nenhuma assinatura individual</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </>
         )}
       </Modal>
@@ -123,6 +184,9 @@ export function SchoolDetailModal({ schoolId, onClose }: { schoolId: string; onC
       )}
       {showAddUser && (
         <AddUserModal schoolId={schoolId} onClose={() => setShowAddUser(false)} />
+      )}
+      {showAddSub && (
+        <FamilySubscriptionModal schoolId={schoolId} onClose={() => setShowAddSub(false)} />
       )}
     </>
   );

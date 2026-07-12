@@ -52,6 +52,21 @@ export interface SchoolUser {
   school_id: string | null;
 }
 
+export type FamilySubStatus = 'active' | 'overdue' | 'cancelled' | 'pending';
+export type FamilyPriceTier = 'cheio' | 'pontualidade' | 'promo';
+
+export interface FamilySubscription {
+  id: string;
+  parent_id: string;
+  parent_email: string | null;
+  parent_name: string | null;
+  school_id: string;
+  status: FamilySubStatus;
+  price_tier: FamilyPriceTier;
+  current_period: string | null;
+  expires_at: string | null;
+}
+
 export interface Overview {
   total_schools: number;
   active_schools: number;
