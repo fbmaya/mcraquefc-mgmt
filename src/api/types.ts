@@ -27,6 +27,9 @@ export interface License {
   status: LicenseStatus;
   max_students: number;
   max_coaches: number;
+  family_included: boolean;
+  family_price_per_student: number | null;
+  family_seats: number | null;
   expires_at: string | null;
   notes: string | null;
 }
@@ -37,6 +40,8 @@ export interface SchoolDetail {
   manager_count: number;
   coach_count: number;
   student_count: number;
+  active_student_count: number;
+  family_over_quota: boolean;
 }
 
 export interface SchoolUser {

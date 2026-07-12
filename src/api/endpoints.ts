@@ -22,6 +22,9 @@ export interface LicenseInput {
   status?: LicenseStatus;
   max_students?: number;
   max_coaches?: number;
+  family_included?: boolean;
+  family_price_per_student?: number | null;
+  family_seats?: number | null;
   expires_at?: string | null;
   notes?: string | null;
 }

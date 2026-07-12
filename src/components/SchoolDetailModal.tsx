@@ -55,6 +55,13 @@ export function SchoolDetailModal({ schoolId, onClose }: { schoolId: string; onC
               </div>
             </div>
 
+            {data.family_over_quota && (
+              <p className="alert alert-warning">
+                ⚠️ Alunos ativos ({data.active_student_count}) acima da cota Family contratada
+                ({lic?.family_seats}). O acesso NÃO é bloqueado — considere renegociar o pacote.
+              </p>
+            )}
+
             <p className="subhead">Licença</p>
             <div className="license-box">
               <div><span className="kpi-label">Plano</span><br />{lic?.plan ?? '—'}</div>
@@ -62,6 +69,20 @@ export function SchoolDetailModal({ schoolId, onClose }: { schoolId: string; onC
               <div><span className="kpi-label">Máx. alunos</span><br />{lic?.max_students ?? '—'}</div>
               <div><span className="kpi-label">Máx. professores</span><br />{lic?.max_coaches ?? '—'}</div>
               <div><span className="kpi-label">Expira em</span><br />{lic?.expires_at ?? 'Sem data'}</div>
+            </div>
+
+            <div className="license-box">
+              <div>
+                <span className="kpi-label">Family incluso</span><br />
+                {lic?.family_included
+                  ? <span className="badge badge-green">Sim</span>
+                  : <span className="badge badge-gray">Não</span>}
+              </div>
+              <div><span className="kpi-label">Preço/aluno</span><br />
+                {lic?.family_price_per_student != null ? `R$ ${lic.family_price_per_student}` : '—'}</div>
+              <div><span className="kpi-label">Cota Family</span><br />
+                {lic?.family_seats ?? 'ilimitado'}</div>
+              <div><span className="kpi-label">Alunos ativos</span><br />{data.active_student_count}</div>
             </div>
 
             <div className="detail-actions">
